@@ -50,6 +50,8 @@ type Msg
   | UpdateEditField String
   | FinishEdit Int
   | CancelEdit
+  | SetFilter Filter
+  | ClearCompleted
 
 update : Msg -> Model -> Model
 update msg model = 
@@ -102,6 +104,10 @@ update msg model =
             , editField = ""
           }
       CancelEdit -> { model | editingId = Nothing, editField = "" }
+      SetFilter f -> 
+        { model | filter = f }
+      ClearCompleted ->
+        { model | todos = List.filter (\todo -> not todo.completed)  model.todos }
 
         
 
@@ -109,27 +115,40 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-  div []
-      [ h1 [][ text "Elm Todos"]
-      , input
-          [ placeholder "What needs to be done?"
-          , id "wer-123"
-          , name "todo"
-          , value model.field
-          , onInput UpdateField
-          , onEnter AddTodo
+  let
+    filteredTodos = 
+      case model.filter of 
+        All -> model.todos
+        Active -> List.filter (\todo -> not todo.completed) model.todos
+        Completed -> List.filter (\todo -> todo.completed) model.todos
+    
+    remaining = 
+      List.length (List.filter (\todo -> not todo.completed) model.todos)
+  in
+  div [ class "app" ]
+      [ h1 [] [ text "Elm Todos" ]
+      , div [ class "input-bar" ]
+          [ input
+              [ placeholder "What needs to be done?"
+              , value model.field
+              , onInput UpdateField
+              , onEnter AddTodo
+              ]
+              []
+          , button [ class "btn-add", onClick AddTodo ] [ text "Add" ]
           ]
-          []
-      , button [ onClick AddTodo ][ text "Add" ]
-      , ul [] (List.map (viewTodo model.editingId model.editField) model.todos)  
+      , ul [ class "todo-list" ]
+           (List.map (viewTodo model.editingId model.editField) filteredTodos)
+      , viewFooter remaining model.filter
       ]
 
 viewTodo : Maybe Int -> String -> Todo -> Html Msg
 viewTodo editingId editField todo =
-    li []
+    li [ class "todo-item" ]
         (if editingId == Just todo.id then
             [ input
-                [ value editField
+                [ class "edit-input"
+                , value editField
                 , onInput UpdateEditField
                 , onKeyDown (FinishEdit todo.id) CancelEdit
                 , onBlur (FinishEdit todo.id)
@@ -144,14 +163,40 @@ viewTodo editingId editField todo =
                 ]
                 []
             , span
-                [ style "text-decoration"
-                    (if todo.completed then "line-through" else "none")
+                [ class ("todo-label" ++ if todo.completed then " completed" else "")
                 , onDoubleClick (StartEdit todo.id todo.title)
                 ]
                 [ text todo.title ]
-            , button [ onClick (DeleteTodo todo.id) ] [ text " x" ]
+            , button [ class "btn-delete", onClick (DeleteTodo todo.id) ] [ text "×" ]
             ]
         )
+
+viewFooter : Int -> Filter -> Html Msg
+viewFooter remaining currentFilter =
+  div [ class "footer" ]
+      [ span [] [ text (String.fromInt remaining ++ " items left") ]
+      , div [ class "filters" ]
+        [ filterButton All currentFilter
+        , filterButton Active currentFilter
+        , filterButton Completed currentFilter
+        ]
+      , button [ class "btn-clear", onClick ClearCompleted ] [ text "Clear completed" ]
+      ]
+filterButton : Filter -> Filter -> Html Msg
+filterButton f currentFilter = 
+  button
+    [ class ("filter-btn" ++ if f == currentFilter then " selected" else "")
+    , onClick (SetFilter f)
+    ]
+    [ text (filterToString f) ]
+
+filterToString : Filter -> String
+filterToString f = 
+  case f of 
+    All -> "All"
+    Active -> "Active"
+    Completed -> "Completed"
+      
 onKeyDown : Msg -> Msg -> Attribute Msg
 onKeyDown enterMsg escapeMsg =
     on "keydown"
