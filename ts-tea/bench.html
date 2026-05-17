@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>ts-tea benchmark — v1 vs v2 vs v3 vs v4 vs v5 vs v6</title>
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+        max-width: 720px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+        color: #1a1a1a;
+      }
+      h1 { font-size: 1.5rem; }
+      pre#results {
+        background: #f5f5f5;
+        padding: 1rem;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        white-space: pre-wrap;
+        line-height: 1.5;
+      }
+      button#run {
+        padding: 0.5rem 1rem;
+        font-size: 1rem;
+        border: 0;
+        border-radius: 6px;
+        background: #0969da;
+        color: #fff;
+        cursor: pointer;
+      }
+      /* Hide the mounted app UIs — benchmark doesn't need them visible. */
+      #v1-container,
+      #v2-container,
+      #v3-container,
+      #v4-container,
+      #v5-container,
+      #v6-container {
+        position: absolute;
+        left: -9999px;
+        top: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>ts-tea benchmark — v1/v2/v3/v4/v5/v6</h1>
+    <p>
+      Measures average time per <code>QueryChanged</code> dispatch for each
+      version, over multiple runs. Lower is better.
+    </p>
+    <p>
+      All six versions are mounted off-screen. Clicking "Run" fires
+      thousands of synthetic <code>input</code> events at each version's input
+      element and times the handler cost.
+    </p>
+    <button id="run">Run benchmark</button>
+    <pre id="results">Click "Run benchmark" to start.</pre>
+
+    <!-- v1 mount point -->
+    <div id="v1-container">
+      <div id="root"></div>
+    </div>
+
+    <!-- v2 static shell (minimal copy of the one in v2.html) -->
+    <div id="v2-container">
+      <div class="app" data-app="github-lookup">
+        <h1>GitHub User Lookup</h1>
+        <form class="search" data-hook="form">
+          <input data-hook="input" type="text" />
+          <button data-hook="submit" type="submit" disabled>Search</button>
+        </form>
+        <div data-hook="result" data-state="idle">
+          <p data-state-view="idle" class="hint">Enter a username.</p>
+          <p data-state-view="loading" class="hint">
+            Loading <span data-hook="loading-username"></span>…
+          </p>
+          <p data-state-view="error" class="error" data-hook="error-message"></p>
+          <div data-state-view="success" class="user">
+            <img data-hook="avatar" alt="" width="96" height="96" />
+            <h2 data-hook="name"></h2>
+            <p data-hook="login"></p>
+            <p data-hook="bio"></p>
+            <p>Public repos: <span data-hook="repos"></span></p>
+            <a data-hook="profile-link" target="_blank">View on GitHub →</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- v3 static shell (identical markup to v2's; distinct container id). -->
+    <div id="v3-container">
+      <div class="app" data-app="github-lookup">
+        <h1>GitHub User Lookup</h1>
+        <form class="search" data-hook="form">
+          <input data-hook="input" type="text" />
+          <button data-hook="submit" type="submit" disabled>Search</button>
+        </form>
+        <div data-hook="result" data-state="idle">
+          <p data-state-view="idle" class="hint">Enter a username.</p>
+          <p data-state-view="loading" class="hint">
+            Loading <span data-hook="loading-username"></span>…
+          </p>
+          <p data-state-view="error" class="error" data-hook="error-message"></p>
+          <div data-state-view="success" class="user">
+            <img data-hook="avatar" alt="" width="96" height="96" />
+            <h2 data-hook="name"></h2>
+            <p data-hook="login"></p>
+            <p data-hook="bio"></p>
+            <p>Public repos: <span data-hook="repos"></span></p>
+            <a data-hook="profile-link" target="_blank">View on GitHub →</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- v4 static shell (identical markup; distinct container id). -->
+    <div id="v4-container">
+      <div class="app" data-app="github-lookup">
+        <h1>GitHub User Lookup</h1>
+        <form class="search" data-hook="form">
+          <input data-hook="input" type="text" />
+          <button data-hook="submit" type="submit" disabled>Search</button>
+        </form>
+        <div data-hook="result" data-state="idle">
+          <p data-state-view="idle" class="hint">Enter a username.</p>
+          <p data-state-view="loading" class="hint">
+            Loading <span data-hook="loading-username"></span>…
+          </p>
+          <p data-state-view="error" class="error" data-hook="error-message"></p>
+          <div data-state-view="success" class="user">
+            <img data-hook="avatar" alt="" width="96" height="96" />
+            <h2 data-hook="name"></h2>
+            <p data-hook="login"></p>
+            <p data-hook="bio"></p>
+            <p>Public repos: <span data-hook="repos"></span></p>
+            <a data-hook="profile-link" target="_blank">View on GitHub →</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- v5 static shell (identical markup; distinct container id). -->
+    <div id="v5-container">
+      <div class="app" data-app="github-lookup">
+        <h1>GitHub User Lookup</h1>
+        <form class="search" data-hook="form">
+          <input data-hook="input" type="text" />
+          <button data-hook="submit" type="submit" disabled>Search</button>
+        </form>
+        <div data-hook="result" data-state="idle">
+          <p data-state-view="idle" class="hint">Enter a username.</p>
+          <p data-state-view="loading" class="hint">
+            Loading <span data-hook="loading-username"></span>…
+          </p>
+          <p data-state-view="error" class="error" data-hook="error-message"></p>
+          <div data-state-view="success" class="user">
+            <img data-hook="avatar" alt="" width="96" height="96" />
+            <h2 data-hook="name"></h2>
+            <p data-hook="login"></p>
+            <p data-hook="bio"></p>
+            <p>Public repos: <span data-hook="repos"></span></p>
+            <a data-hook="profile-link" target="_blank">View on GitHub →</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- v6 static shell (identical markup; distinct container id). -->
+    <div id="v6-container">
+      <div class="app" data-app="github-lookup">
+        <h1>GitHub User Lookup</h1>
+        <form class="search" data-hook="form">
+          <input data-hook="input" type="text" />
+          <button data-hook="submit" type="submit" disabled>Search</button>
+        </form>
+        <div data-hook="result" data-state="idle">
+          <p data-state-view="idle" class="hint">Enter a username.</p>
+          <p data-state-view="loading" class="hint">
+            Loading <span data-hook="loading-username"></span>…
+          </p>
+          <p data-state-view="error" class="error" data-hook="error-message"></p>
+          <div data-state-view="success" class="user">
+            <img data-hook="avatar" alt="" width="96" height="96" />
+            <h2 data-hook="name"></h2>
+            <p data-hook="login"></p>
+            <p data-hook="bio"></p>
+            <p>Public repos: <span data-hook="repos"></span></p>
+            <a data-hook="profile-link" target="_blank">View on GitHub →</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- v1 and v2 auto-mount on static load. v3, v4, v5, v6 are dynamically
+         imported below in sequence: between each import, the
+         previously-mounted container's data-app attribute is renamed
+         so the next module's document.querySelector lands on a fresh
+         shell (v2/v3/v4/v5 all use the same selector). -->
+    <script type="module" src="./dist/v1/main.js"></script>
+    <script type="module" src="./dist/v2/main.js"></script>
+
+    <script type="module">
+      // Wait a microtask so v1/v2 auto-mounts have definitely finished.
+      await new Promise((resolve) => queueMicrotask(resolve));
+
+      const out = document.getElementById("results");
+      const runBtn = document.getElementById("run");
+
+      const v1Input = document.querySelector("#root input");
+
+      // Capture v2's container and input BEFORE renaming. v2's refs are
+      // already captured inside its mount closure, so renaming the
+      // attribute post-mount does not affect its runtime behavior.
+      const v2Container = document.querySelector(
+        '#v2-container [data-app="github-lookup"]',
+      );
+      const v2Input = v2Container?.querySelector('[data-hook="input"]');
+
+      // Rename so v3's document.querySelector(selectors.root) finds
+      // only the v3 shell.
+      if (v2Container) v2Container.setAttribute("data-app", "github-lookup--v2");
+
+      // Dynamically import v3. Its onReady runs synchronously at import
+      // time (module top-level), mounting onto the v3 container.
+      await import("./dist/v3/main.js");
+
+      const v3Container = document.querySelector(
+        '#v3-container [data-app="github-lookup"]',
+      );
+      const v3Input = v3Container?.querySelector('[data-hook="input"]');
+
+      // Same trick again: rename v3's container so v4's
+      // document.querySelector lands on the v4 shell instead of v3's.
+      if (v3Container) v3Container.setAttribute("data-app", "github-lookup--v3");
+
+      await import("./dist/v4/main.js");
+
+      const v4Container = document.querySelector(
+        '#v4-container [data-app="github-lookup"]',
+      );
+      const v4Input = v4Container?.querySelector('[data-hook="input"]');
+
+      // Same trick once more: rename v4's container so v5's
+      // document.querySelector lands on the v5 shell.
+      if (v4Container) v4Container.setAttribute("data-app", "github-lookup--v4");
+
+      await import("./dist/v5/main.js");
+
+      const v5Container = document.querySelector(
+        '#v5-container [data-app="github-lookup"]',
+      );
+      const v5Input = v5Container?.querySelector('[data-hook="input"]');
+
+      // Same trick once more: rename v5's container so v6's
+      // document.querySelector lands on the v6 shell.
+      if (v5Container) v5Container.setAttribute("data-app", "github-lookup--v5");
+
+      await import("./dist/v6/main.js");
+
+      const v6Input = document.querySelector(
+        '#v6-container [data-app="github-lookup"] [data-hook="input"]',
+      );
+
+      if (!v1Input || !v2Input || !v3Input || !v4Input || !v5Input || !v6Input) {
+        out.textContent =
+          "ERROR: one of the inputs was not found. Check devtools console.";
+        console.error({ v1Input, v2Input, v3Input, v4Input, v5Input, v6Input });
+        throw new Error("inputs not found");
+      }
+
+      const fire = (el, value) => {
+        el.value = value;
+        el.dispatchEvent(new Event("input", { bubbles: true }));
+      };
+
+      // Run `fn` `iters` times, return ms per op. Includes warmup.
+      const bench = (fn, iters) => {
+        for (let i = 0; i < 500; i++) fn(i); // warmup
+        const start = performance.now();
+        for (let i = 0; i < iters; i++) fn(i);
+        const end = performance.now();
+        return (end - start) / iters;
+      };
+
+      const fmt = (x) => x.toFixed(4);
+      const avg = (arr) => arr.reduce((s, x) => s + x, 0) / arr.length;
+      const best = (arr) => Math.min(...arr);
+
+      const runBenchmark = () => {
+        runBtn.disabled = true;
+        out.textContent = "Running…";
+
+        // Yield to the browser so the UI updates before we block the main
+        // thread for a few hundred ms.
+        setTimeout(() => {
+          const iters = 5000;
+          const runs = 6;
+
+          const v1Times = [];
+          const v2Times = [];
+          const v3Times = [];
+          const v4Times = [];
+          const v5Times = [];
+          const v6Times = [];
+          // Interleave runs so any transient JIT / GC noise hits all six.
+          for (let r = 0; r < runs; r++) {
+            v1Times.push(bench((i) => fire(v1Input, "user" + i), iters));
+            v2Times.push(bench((i) => fire(v2Input, "user" + i), iters));
+            v3Times.push(bench((i) => fire(v3Input, "user" + i), iters));
+            v4Times.push(bench((i) => fire(v4Input, "user" + i), iters));
+            v5Times.push(bench((i) => fire(v5Input, "user" + i), iters));
+            v6Times.push(bench((i) => fire(v6Input, "user" + i), iters));
+          }
+
+          const v1Avg = avg(v1Times);
+          const v1Best = best(v1Times);
+          const v2Avg = avg(v2Times);
+          const v2Best = best(v2Times);
+          const v3Avg = avg(v3Times);
+          const v3Best = best(v3Times);
+          const v4Avg = avg(v4Times);
+          const v4Best = best(v4Times);
+          const v5Avg = avg(v5Times);
+          const v5Best = best(v5Times);
+          const v6Avg = avg(v6Times);
+          const v6Best = best(v6Times);
+
+          const contenders = [
+            { name: "v1 (vdom)",          avg: v1Avg, best: v1Best },
+            { name: "v2 (imperative)",    avg: v2Avg, best: v2Best },
+            { name: "v3 (signals)",       avg: v3Avg, best: v3Best },
+            { name: "v4 (async-first)",   avg: v4Avg, best: v4Best },
+            { name: "v5 (statechart)",    avg: v5Avg, best: v5Best },
+            { name: "v6 (no architecture)", avg: v6Avg, best: v6Best },
+          ];
+          const byAvg  = [...contenders].sort((a, b) => a.avg  - b.avg);
+          const byBest = [...contenders].sort((a, b) => a.best - b.best);
+          const winnerAvg  = byAvg[0];
+          const winnerBest = byBest[0];
+          const runnerUpAvg  = byAvg[1];
+          const runnerUpBest = byBest[1];
+          const marginAvg  = ((runnerUpAvg.avg  / winnerAvg.avg)  - 1) * 100;
+          const marginBest = ((runnerUpBest.best / winnerBest.best) - 1) * 100;
+
+          out.textContent = [
+            `Iterations per run: ${iters.toLocaleString()}`,
+            `Runs per version:    ${runs}`,
+            `Operation:           synthetic 'input' event on the username field`,
+            ``,
+            `── v1 (vdom)`,
+            `  per dispatch, avg:  ${fmt(v1Avg)} ms`,
+            `  per dispatch, best: ${fmt(v1Best)} ms`,
+            `  all runs (ms):      ${v1Times.map(fmt).join(", ")}`,
+            ``,
+            `── v2 (imperative)`,
+            `  per dispatch, avg:  ${fmt(v2Avg)} ms`,
+            `  per dispatch, best: ${fmt(v2Best)} ms`,
+            `  all runs (ms):      ${v2Times.map(fmt).join(", ")}`,
+            ``,
+            `── v3 (signals)`,
+            `  per dispatch, avg:  ${fmt(v3Avg)} ms`,
+            `  per dispatch, best: ${fmt(v3Best)} ms`,
+            `  all runs (ms):      ${v3Times.map(fmt).join(", ")}`,
+            ``,
+            `── v4 (async-first)`,
+            `  per dispatch, avg:  ${fmt(v4Avg)} ms`,
+            `  per dispatch, best: ${fmt(v4Best)} ms`,
+            `  all runs (ms):      ${v4Times.map(fmt).join(", ")}`,
+            ``,
+            `── v5 (statechart)`,
+            `  per dispatch, avg:  ${fmt(v5Avg)} ms`,
+            `  per dispatch, best: ${fmt(v5Best)} ms`,
+            `  all runs (ms):      ${v5Times.map(fmt).join(", ")}`,
+            ``,
+            `── v6 (no architecture)`,
+            `  per dispatch, avg:  ${fmt(v6Avg)} ms`,
+            `  per dispatch, best: ${fmt(v6Best)} ms`,
+            `  all runs (ms):      ${v6Times.map(fmt).join(", ")}`,
+            ``,
+            `── speedup vs v1 (v1 time / x time)`,
+            `  v2 avg:  ${(v1Avg / v2Avg).toFixed(2)}x    v2 best: ${(v1Best / v2Best).toFixed(2)}x`,
+            `  v3 avg:  ${(v1Avg / v3Avg).toFixed(2)}x    v3 best: ${(v1Best / v3Best).toFixed(2)}x`,
+            `  v4 avg:  ${(v1Avg / v4Avg).toFixed(2)}x    v4 best: ${(v1Best / v4Best).toFixed(2)}x`,
+            `  v5 avg:  ${(v1Avg / v5Avg).toFixed(2)}x    v5 best: ${(v1Best / v5Best).toFixed(2)}x`,
+            `  v6 avg:  ${(v1Avg / v6Avg).toFixed(2)}x    v6 best: ${(v1Best / v6Best).toFixed(2)}x`,
+            ``,
+            `── 🏆 winner`,
+            `  by avg:  ${winnerAvg.name}  (${fmt(winnerAvg.avg)} ms, ${marginAvg.toFixed(1)}% ahead of ${runnerUpAvg.name})`,
+            `  by best: ${winnerBest.name}  (${fmt(winnerBest.best)} ms, ${marginBest.toFixed(1)}% ahead of ${runnerUpBest.name})`,
+            ``,
+            `Interpretation: this hot path measures only the input-event`,
+            `handler cost, which is where the six versions differ most:`,
+            `  v1 dispatch → update → vdom diff → patch`,
+            `  v2 dispatch → update → render switch → 3 DOM mutations`,
+            `  v3 query.set → re-run effects subscribed to query`,
+            `  v4 direct: refs.submit.disabled = input.value.trim() === ''`,
+            `  v5 dispatch → table lookup → transition fn → render switch`,
+            `  v6 direct: refs.submit.disabled = isLoading || trim === ''`,
+            `v4 and v6 should be effectively tied at the bottom: both`,
+            `do the same direct DOM write with no architecture in the way.`,
+            `v6 is the "no insurance" baseline — what every other version`,
+            `is measured against. If v6 ties or beats the others on this`,
+            `microbench but you still pick v1–v5, you are paying runtime`,
+            `cost (sometimes zero, sometimes not) in exchange for write-`,
+            `time and typecheck-time properties: testability, invariants,`,
+            `extension points, and the ability to reason about the UI`,
+            `without reading the DOM. That tradeoff is the whole point`,
+            `of this project.`,
+          ].join("\n");
+
+          runBtn.disabled = false;
+        }, 20);
+      };
+
+      runBtn.addEventListener("click", runBenchmark);
+    </script>
+  </body>
+</html>

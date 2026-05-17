@@ -1,0 +1,12 @@
+elm-format src/PhotoGroove.elm --yes
+
+DEV SERVER
+elm reactor
+
+npx serve -s
+
+COMPILE
+elm make src/PhotoGroove.elm --output app.js
+
+elm install elm/random
+elm install elm/http

@@ -1,0 +1,13 @@
+{
+  "name": "ts-tea",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p .",
+    "watch": "tsc -p . --watch"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3"
+  }
+}

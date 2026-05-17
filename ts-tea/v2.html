@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ts-tea v2 — GitHub user lookup (imperative)</title>
+  <style>
+    :root {
+      font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+      color: #1a1a1a;
+      background: #fafafa;
+    }
+
+    body {
+      margin: 0;
+      padding: 2rem;
+    }
+
+    .app {
+      max-width: 520px;
+      margin: 0 auto;
+      background: #fff;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    }
+
+    h1 {
+      margin-top: 0;
+      font-size: 1.5rem;
+    }
+
+    .search {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .search input {
+      flex: 1;
+      padding: 0.5rem 0.75rem;
+      font-size: 1rem;
+      border: 1px solid #d0d0d0;
+      border-radius: 6px;
+    }
+
+    .search button {
+      padding: 0.5rem 1rem;
+      font-size: 1rem;
+      border: 0;
+      border-radius: 6px;
+      background: #0969da;
+      color: #fff;
+      cursor: pointer;
+    }
+
+    .search button[disabled] {
+      background: #a0a0a0;
+      cursor: not-allowed;
+    }
+
+    .hint {
+      color: #666;
+    }
+
+    .error {
+      color: #b91c1c;
+    }
+
+    .user {
+      display: grid;
+      gap: 0.25rem;
+    }
+
+    .avatar {
+      width: 96px;
+      height: 96px;
+      border-radius: 50%;
+      border: 1px solid #e0e0e0;
+    }
+
+    .user h2 {
+      margin: 0.5rem 0 0;
+    }
+
+    .login {
+      color: #666;
+      margin: 0;
+    }
+
+    .bio {
+      margin: 0.5rem 0;
+    }
+
+    .bio.muted {
+      color: #999;
+      font-style: italic;
+    }
+
+    .user a {
+      margin-top: 0.5rem;
+      color: #0969da;
+      text-decoration: none;
+    }
+
+    .user a:hover {
+      text-decoration: underline;
+    }
+
+    /* Result panels pre-exist in the DOM; the data-state attribute on
+         the container decides which one is visible. JS flips the
+         attribute; CSS does the rest. */
+    [data-state-view] {
+      display: none;
+    }
+
+    [data-state="idle"]>[data-state-view="idle"],
+    [data-state="loading"]>[data-state-view="loading"],
+    [data-state="error"]>[data-state-view="error"],
+    [data-state="success"]>[data-state-view="success"] {
+      display: block;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app" data-app="github-lookup">
+    <h1>GitHub User Lookup (v2 — imperative)</h1>
+
+    <form class="search" data-hook="form">
+      <input id="search-123" data-hook="input" type="search"
+        placeholder="username (try 'elm', 'torvalds', 'gaearon')" />
+      <button data-hook="submit" type="submit" disabled>Search</button>
+    </form>
+
+    <div data-hook="result" data-state="idle">
+      <p data-state-view="idle" class="hint">
+        Enter a GitHub username above and click Search.
+      </p>
+      <p data-state-view="loading" class="hint">
+        Loading <span data-hook="loading-username"></span>…
+      </p>
+      <p data-state-view="error" class="error" data-hook="error-message"></p>
+      <div data-state-view="success" class="user">
+        <img data-hook="avatar" class="avatar" width="96" height="96" alt="" />
+        <h2 data-hook="name"></h2>
+        <p data-hook="login" class="login"></p>
+        <p data-hook="bio" class="bio"></p>
+        <p>Public repos: <span data-hook="repos"></span></p>
+        <a data-hook="profile-link" target="_blank" rel="noopener">View on GitHub →</a>
+      </div>
+    </div>
+  </div>
+  <script type="module" src="./dist/v2/main.js"></script>
+</body>
+
+</html>
