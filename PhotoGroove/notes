@@ -10,3 +10,5 @@ elm make src/PhotoGroove.elm --output app.js
 
 elm install elm/random
 elm install elm/http
+elm install elm/json
+elm install NoRedInk/elm-json-decode-pipeline

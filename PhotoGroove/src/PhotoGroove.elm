@@ -1,16 +1,28 @@
 module PhotoGroove exposing (main)
 
-import Array exposing (Array)
 import Browser
 import Html exposing (Html, button, div, h1, h3, img, input, label, span, text)
-import Html.Attributes exposing (class, classList, id, name, src, type_)
+import Html.Attributes exposing (checked, class, classList, id, name, src, title, type_)
 import Html.Events exposing (onClick)
 import Http
+import Json.Decode exposing (Decoder, int, list, string, succeed)
+import Json.Decode.Pipeline exposing (optional, required)
 import Random
 
 
 type alias Photo =
-    { url : String }
+    { url : String
+    , size : Int
+    , title : String
+    }
+
+
+photoDecoder : Decoder Photo
+photoDecoder =
+    succeed Photo
+        |> required "url" string
+        |> required "size" int
+        |> optional "title" string "untitled"
 
 
 type Status
@@ -30,7 +42,7 @@ type Msg
     | ClickedSurpriseMe
     | ClickedSize ThumbnailSize
     | GotRandomPhoto Photo
-    | GotPhotos (Result Http.Error String)
+    | GotPhotos (Result Http.Error (List Photo))
 
 
 type ThumbnailSize
@@ -39,18 +51,28 @@ type ThumbnailSize
     | Large
 
 
+urlPrefix : String
+urlPrefix =
+    "http://elm-in-action.com/"
+
+
 initialModel : Model
 initialModel =
     { status = Loading
-    , chosenSize = Medium
+    , chosenSize = Large
     }
+
+
+photosListUrl : String
+photosListUrl =
+    "http://elm-in-action.com/photos/list.json"
 
 
 initialCmd : Cmd Msg
 initialCmd =
     Http.get
-        { url = "http://elm-in-action.com/photos/list"
-        , expect = Http.expectString GotPhotos
+        { url = photosListUrl
+        , expect = Http.expectJson GotPhotos (list photoDecoder)
         }
 
 
@@ -82,14 +104,10 @@ update msg model =
         GotRandomPhoto photo ->
             ( { model | status = selectUrl photo.url model.status }, Cmd.none )
 
-        GotPhotos (Ok responseStr) ->
-            case String.split "," responseStr of
-                (firstUrl :: _) as urls ->
-                    let
-                        photos =
-                            List.map Photo urls
-                    in
-                    ( { model | status = Loaded photos firstUrl }, Cmd.none )
+        GotPhotos (Ok photos) ->
+            case photos of
+                first :: rest ->
+                    ( { model | status = Loaded photos first.url }, Cmd.none )
 
                 [] ->
                     ( { model | status = Errored "Found 0 photo" }, Cmd.none )
@@ -107,7 +125,7 @@ selectUrl url status =
         Loading ->
             status
 
-        Errored errorMessage ->
+        Errored _ ->
             status
 
 
@@ -130,8 +148,8 @@ viewLoaded photos selectedUrl chosenSize =
     [ h1 [] [ text "Photo Groove" ]
     , button [ onClick ClickedSurpriseMe ] [ text "Surprise me!" ]
     , h3 [] [ text "Thumbnail Size:" ]
-    , div [ id "choose-size" ] (List.map viewSizeChooser [ Small, Medium, Large ])
-    , div [ id "thumbnails", class (sizeToString chosenSize) ] (List.map (viewThumbnail selectedUrl) photos)
+    , div [ id "choose-size" ] (List.map (viewSizeChooser chosenSize) [ Small, Medium, Large ])
+    , div [ id "thumbnails", class (sizeToClass chosenSize) ] (List.map (viewThumbnail selectedUrl) photos)
     , img [ class "large", src (urlPrefix ++ "large/" ++ selectedUrl) ] []
     ]
 
@@ -140,21 +158,23 @@ viewThumbnail : String -> Photo -> Html Msg
 viewThumbnail selectedUrl thumb =
     img
         [ src (urlPrefix ++ thumb.url)
+        , title (thumb.title ++ " [" ++ String.fromInt thumb.size ++ " KB]")
         , classList [ ( "selected", selectedUrl == thumb.url ) ]
         , onClick (ClickedPhoto thumb.url)
         ]
         []
 
 
-urlPrefix : String
-urlPrefix =
-    "http://elm-in-action.com/"
-
-
-viewSizeChooser : ThumbnailSize -> Html Msg
-viewSizeChooser size =
+viewSizeChooser : ThumbnailSize -> ThumbnailSize -> Html Msg
+viewSizeChooser chosenSize size =
     label []
-        [ input [ type_ "radio", name "size", onClick (ClickedSize size) ] []
+        [ input
+            [ type_ "radio"
+            , name "size"
+            , checked (chosenSize == size)
+            , onClick (ClickedSize size)
+            ]
+            []
         , text (sizeToString size)
         ]
 
@@ -183,20 +203,6 @@ sizeToClass size =
 
         Large ->
             "large"
-
-
-
---randomPhotoPicker : Random.Generator Int
---randomPhotoPicker =
---    Random.int 0 (Array.length photoArray - 1)
---getPhotoUrl : Int -> String
---getPhotoUrl index =
---    case Array.get index photoArray of
---        Just photo ->
---            photo.url
---
---        Nothing ->
---            ""
 
 
 main : Program () Model Msg
