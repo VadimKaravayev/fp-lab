@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="http://elm-in-action.com/styles.css">
   <link rel="stylesheet" href="http://elm-in-action.com/range-slider.css">
   <script src="http://elm-in-action.com/range-slider.js"></script>
+  <script src="http://elm-in-action.com/pasta.js"></script>
   <script>
     class RangeSlide extends HTMLElement {
       connectedCallback() {
@@ -40,9 +41,13 @@
 
 <body>
   <div id="app"></div>
+
   <script src="app.js"></script>
   <script>
-    Elm.PhotoGroove.init({ node: document.getElementById("app") });
+    const app = Elm.PhotoGroove.init({ node: document.getElementById("app") });
+    app.ports.setFilters.subscribe((options) => {
+      Pasta.apply(document.getElementById("main-canvas"), options)
+    });
   </script>
 </body>
 

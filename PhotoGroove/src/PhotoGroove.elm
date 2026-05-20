@@ -1,7 +1,7 @@
 port module PhotoGroove exposing (main)
 
 import Browser
-import Html exposing (Attribute, Html, button, div, h1, h3, img, input, label, node, span, text)
+import Html exposing (Attribute, Html, button, canvas, div, h1, h3, img, input, label, node, span, text)
 import Html.Attributes as Attr exposing (checked, class, classList, id, name, src, title, type_)
 import Html.Events exposing (on, onClick)
 import Http
@@ -233,7 +233,7 @@ viewLoaded photos selectedUrl model =
     , h3 [] [ text "Thumbnail Size:" ]
     , div [ id "choose-size" ] (List.map (viewSizeChooser model.chosenSize) [ Small, Medium, Large ])
     , div [ id "thumbnails", class (sizeToClass model.chosenSize) ] (List.map (viewThumbnail selectedUrl) photos)
-    , img [ class "large", src (urlPrefix ++ "large/" ++ selectedUrl) ] []
+    , canvas [ id "main-canvas", class "large" ] []
     ]
 
 
