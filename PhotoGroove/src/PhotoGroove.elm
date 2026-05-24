@@ -11,11 +11,6 @@ import Json.Encode
 import Random
 
 
-rangeSlider : List (Attribute msg) -> List (Html msg) -> Html msg
-rangeSlider attributes children =
-    node "range-slider" attributes children
-
-
 
 --onSlide : (Int -> msg) -> Attribute msg
 --onSlide toMsg =
@@ -41,9 +36,12 @@ onSlide toMsg =
 port setFilters : FilterOption -> Cmd msg
 
 
+port activityChanges : (String -> msg) -> Sub msg
+
+
 type alias FilterOption =
     { url : String
-    , filters : List { name : String, amount : Int }
+    , filters : List { name : String, amount : Float }
     }
 
 
@@ -70,6 +68,7 @@ type Status
 
 type alias Model =
     { status : Status
+    , activity : String
     , chosenSize : ThumbnailSize
     , hue : Int
     , ripple : Int
@@ -86,6 +85,7 @@ type Msg
     | SlidHue Int
     | SlidRipple Int
     | SlidNoise Int
+    | GotActivity String
 
 
 type ThumbnailSize
@@ -102,6 +102,7 @@ urlPrefix =
 initialModel : Model
 initialModel =
     { status = Loading
+    , activity = ""
     , chosenSize = Large
     , hue = 5
     , ripple = 5
@@ -153,7 +154,7 @@ update msg model =
         GotPhotos (Ok photos) ->
             case photos of
                 first :: rest ->
-                    ( { model | status = Loaded photos first.url }, Cmd.none )
+                    applyFilters { model | status = Loaded photos first.url }
 
                 [] ->
                     ( { model | status = Errored "Found 0 photo" }, Cmd.none )
@@ -162,13 +163,16 @@ update msg model =
             ( { model | status = Errored "failed to get photos" }, Cmd.none )
 
         SlidHue hue ->
-            ( { model | hue = hue }, Cmd.none )
+            applyFilters { model | hue = hue }
 
         SlidRipple ripple ->
-            ( { model | ripple = ripple }, Cmd.none )
+            applyFilters { model | ripple = ripple }
 
         SlidNoise noise ->
-            ( { model | noise = noise }, Cmd.none )
+            applyFilters { model | noise = noise }
+
+        GotActivity activity ->
+            ( { model | activity = activity }, Cmd.none )
 
 
 applyFilters : Model -> ( Model, Cmd Msg )
@@ -176,10 +180,13 @@ applyFilters model =
     case model.status of
         Loaded photos selectedUrl ->
             let
+                toAmount num =
+                    toFloat num / 11
+
                 filters =
-                    [ { name = "Hue", amount = model.hue }
-                    , { name = "Ripple", amount = model.ripple }
-                    , { name = "Noise", amount = model.noise }
+                    [ { name = "Hue", amount = toAmount model.hue }
+                    , { name = "Ripple", amount = toAmount model.ripple }
+                    , { name = "Noise", amount = toAmount model.noise }
                     ]
 
                 url =
@@ -225,6 +232,7 @@ viewLoaded : List Photo -> String -> Model -> List (Html Msg)
 viewLoaded photos selectedUrl model =
     [ h1 [] [ text "Photo Groove" ]
     , button [ onClick ClickedSurpriseMe ] [ text "Surprise me!" ]
+    , div [ class "activity" ] [ text model.activity ]
     , div [ class "filters" ]
         [ viewFilter SlidHue "Hue" model.hue
         , viewFilter SlidRipple "Ripple" model.ripple
@@ -276,6 +284,11 @@ viewFilter toMsg name magnitude =
         ]
 
 
+rangeSlider : List (Attribute msg) -> List (Html msg) -> Html msg
+rangeSlider attributes children =
+    node "range-slider" attributes children
+
+
 sizeToString : ThumbnailSize -> String
 sizeToString size =
     case size of
@@ -308,5 +321,5 @@ main =
         { init = \flags -> ( initialModel, initialCmd )
         , view = view
         , update = update
-        , subscriptions = \model -> Sub.none
+        , subscriptions = \model -> activityChanges GotActivity
         }

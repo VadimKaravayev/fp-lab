@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Photo Groove</title>
-  <link rel="stylesheet" href="http://elm-in-action.com/styles.css">
+
   <link rel="stylesheet" href="http://elm-in-action.com/styles.css">
   <link rel="stylesheet" href="http://elm-in-action.com/range-slider.css">
   <script src="http://elm-in-action.com/range-slider.js"></script>
@@ -46,7 +46,14 @@
   <script>
     const app = Elm.PhotoGroove.init({ node: document.getElementById("app") });
     app.ports.setFilters.subscribe((options) => {
-      Pasta.apply(document.getElementById("main-canvas"), options)
+      requestAnimationFrame(() => {
+        const mainCanvas = document.getElementById("main-canvas");
+        Pasta.apply(mainCanvas, options);
+      })
+    });
+    Pasta.addActivityListener((activity) => {
+      console.log("Got some activity to send to Elm, ", activity);
+      app.ports.activityChanges.send(activity);
     });
   </script>
 </body>

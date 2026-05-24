@@ -4716,6 +4716,9 @@ var $elm$core$Set$toList = function (_v0) {
 	return $elm$core$Dict$keys(dict);
 };
 var $elm$core$Basics$GT = {$: 'GT'};
+var $author$project$PhotoGroove$GotActivity = function (a) {
+	return {$: 'GotActivity', a: a};
+};
 var $elm$core$Result$Err = function (a) {
 	return {$: 'Err', a: a};
 };
@@ -5111,6 +5114,8 @@ var $elm$core$Result$isOk = function (result) {
 		return false;
 	}
 };
+var $elm$json$Json$Decode$string = _Json_decodeString;
+var $author$project$PhotoGroove$activityChanges = _Platform_incomingPort('activityChanges', $elm$json$Json$Decode$string);
 var $elm$json$Json$Decode$map = _Json_map1;
 var $elm$json$Json$Decode$map2 = _Json_map2;
 var $elm$json$Json$Decode$succeed = _Json_succeed;
@@ -6287,7 +6292,6 @@ var $NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$required = F3(
 			A2($elm$json$Json$Decode$field, key, valDecoder),
 			decoder);
 	});
-var $elm$json$Json$Decode$string = _Json_decodeString;
 var $author$project$PhotoGroove$photoDecoder = A4(
 	$NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$optional,
 	'title',
@@ -6313,9 +6317,7 @@ var $author$project$PhotoGroove$initialCmd = $elm$http$Http$get(
 	});
 var $author$project$PhotoGroove$Large = {$: 'Large'};
 var $author$project$PhotoGroove$Loading = {$: 'Loading'};
-var $author$project$PhotoGroove$initialModel = {chosenSize: $author$project$PhotoGroove$Large, hue: 5, noise: 5, ripple: 5, status: $author$project$PhotoGroove$Loading};
-var $elm$core$Platform$Sub$batch = _Platform_batch;
-var $elm$core$Platform$Sub$none = $elm$core$Platform$Sub$batch(_List_Nil);
+var $author$project$PhotoGroove$initialModel = {activity: '', chosenSize: $author$project$PhotoGroove$Large, hue: 5, noise: 5, ripple: 5, status: $author$project$PhotoGroove$Loading};
 var $author$project$PhotoGroove$Errored = function (a) {
 	return {$: 'Errored', a: a};
 };
@@ -6328,7 +6330,7 @@ var $author$project$PhotoGroove$Loaded = F2(
 	});
 var $elm$core$Platform$Cmd$batch = _Platform_batch;
 var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
-var $elm$json$Json$Encode$int = _Json_wrap;
+var $elm$json$Json$Encode$float = _Json_wrap;
 var $elm$json$Json$Encode$list = F2(
 	function (func, entries) {
 		return _Json_wrap(
@@ -6367,7 +6369,7 @@ var $author$project$PhotoGroove$setFilters = _Platform_outgoingPort(
 									[
 										_Utils_Tuple2(
 										'amount',
-										$elm$json$Json$Encode$int($.amount)),
+										$elm$json$Json$Encode$float($.amount)),
 										_Utils_Tuple2(
 										'name',
 										$elm$json$Json$Encode$string($.name))
@@ -6386,11 +6388,23 @@ var $author$project$PhotoGroove$applyFilters = function (model) {
 			var photos = _v0.a;
 			var selectedUrl = _v0.b;
 			var url = $author$project$PhotoGroove$urlPrefix + ('large/' + selectedUrl);
+			var toAmount = function (num) {
+				return num / 11;
+			};
 			var filters = _List_fromArray(
 				[
-					{amount: model.hue, name: 'Hue'},
-					{amount: model.ripple, name: 'Ripple'},
-					{amount: model.noise, name: 'Noise'}
+					{
+					amount: toAmount(model.hue),
+					name: 'Hue'
+				},
+					{
+					amount: toAmount(model.ripple),
+					name: 'Ripple'
+				},
+					{
+					amount: toAmount(model.noise),
+					name: 'Noise'
+				}
 				]);
 			return _Utils_Tuple2(
 				model,
@@ -6663,13 +6677,12 @@ var $author$project$PhotoGroove$update = F2(
 					if (photos.b) {
 						var first = photos.a;
 						var rest = photos.b;
-						return _Utils_Tuple2(
+						return $author$project$PhotoGroove$applyFilters(
 							_Utils_update(
 								model,
 								{
 									status: A2($author$project$PhotoGroove$Loaded, photos, first.url)
-								}),
-							$elm$core$Platform$Cmd$none);
+								}));
 					} else {
 						return _Utils_Tuple2(
 							_Utils_update(
@@ -6690,24 +6703,28 @@ var $author$project$PhotoGroove$update = F2(
 				}
 			case 'SlidHue':
 				var hue = msg.a;
-				return _Utils_Tuple2(
+				return $author$project$PhotoGroove$applyFilters(
 					_Utils_update(
 						model,
-						{hue: hue}),
-					$elm$core$Platform$Cmd$none);
+						{hue: hue}));
 			case 'SlidRipple':
 				var ripple = msg.a;
-				return _Utils_Tuple2(
+				return $author$project$PhotoGroove$applyFilters(
 					_Utils_update(
 						model,
-						{ripple: ripple}),
-					$elm$core$Platform$Cmd$none);
-			default:
+						{ripple: ripple}));
+			case 'SlidNoise':
 				var noise = msg.a;
+				return $author$project$PhotoGroove$applyFilters(
+					_Utils_update(
+						model,
+						{noise: noise}));
+			default:
+				var activity = msg.a;
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{noise: noise}),
+						{activity: activity}),
 					$elm$core$Platform$Cmd$none);
 		}
 	});
@@ -6767,6 +6784,7 @@ var $author$project$PhotoGroove$sizeToClass = function (size) {
 			return 'large';
 	}
 };
+var $elm$json$Json$Encode$int = _Json_wrap;
 var $elm$html$Html$label = _VirtualDom_node('label');
 var $elm$html$Html$Attributes$max = $elm$html$Html$Attributes$stringProperty('max');
 var $author$project$PhotoGroove$onSlide = function (toMsg) {
@@ -6969,6 +6987,16 @@ var $author$project$PhotoGroove$viewLoaded = F3(
 				$elm$html$Html$div,
 				_List_fromArray(
 					[
+						$elm$html$Html$Attributes$class('activity')
+					]),
+				_List_fromArray(
+					[
+						$elm$html$Html$text(model.activity)
+					])),
+				A2(
+				$elm$html$Html$div,
+				_List_fromArray(
+					[
 						$elm$html$Html$Attributes$class('filters')
 					]),
 				_List_fromArray(
@@ -7057,7 +7085,7 @@ var $author$project$PhotoGroove$main = $elm$browser$Browser$element(
 			return _Utils_Tuple2($author$project$PhotoGroove$initialModel, $author$project$PhotoGroove$initialCmd);
 		},
 		subscriptions: function (model) {
-			return $elm$core$Platform$Sub$none;
+			return $author$project$PhotoGroove$activityChanges($author$project$PhotoGroove$GotActivity);
 		},
 		update: $author$project$PhotoGroove$update,
 		view: $author$project$PhotoGroove$view
